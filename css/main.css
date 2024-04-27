@@ -1,0 +1,32 @@
+.done {
+    text-decoration: line-through;
+}
+
+table{
+    border: 2px solid black;
+}
+.column {
+    background-color: lightblue;
+    width: max-content;
+    height: max-content;
+    padding: 20px;
+}
+
+.subtask {
+    cursor: pointer;
+}
+
+#task2{
+    display: flex;
+    flex-direction: row;
+}
+#app{
+    display: flex;
+    flex-direction: row;
+    gap: 200px;
+}
+
+.disabled{
+    pointer-events: none;
+    background-color: darkgrey;
+}
