@@ -26,6 +26,7 @@ Vue.component('add-task', {
     <input type="radio" id="no" name="drone" v-model="task.importance" value="0" />
     <label for="no">Common</label>
   </div>
+  <input type="date" v-model="task.deadline_date">
         <button @click="addTask">add</button>
         </div>
     </div>
@@ -52,7 +53,8 @@ Vue.component('add-task', {
                 title: this.task.title,
                 subtasks: this.task.subtasks.filter(subtask => subtask.title),
                 date: this.task.date,
-                importance: this.task.importance
+                importance: this.task.importance,
+                deadline_date: this.task.deadline_date
             };
             this.$emit('add-task', productReview);
             location.reload();
@@ -69,6 +71,7 @@ Vue.component('add-task', {
                     {title: "Task 3", done: false},
                 ],
                 importance: 1,
+                deadline_date: '',
                 date: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString(),
             }
         }
@@ -80,7 +83,8 @@ Vue.component('column', {
         column: {
             title: '',
             tasks: [],
-            date: ''
+            date: '',
+            deadline_date: ''
         }
     },
     template: `
@@ -151,6 +155,7 @@ Vue.component('task', {
     <button @click="addSubtask">Добавить</button>
   </div>
   <p>Дата изменения: {{ task.date }}</p>
+  <p>Предпологаемая дата сдачи: {{ task.deadline_date }}</p>
   <p v-if="task.importance === 1">Важно</p>
   <p v-else>Обычно</p>
 </div>
@@ -218,7 +223,7 @@ let app = new Vue({
                 disabled: false,
                 index: 0,
                 title: "New tasks",
-                tasks: []
+                tasks: [],
             },
             {
                 index: 1,
@@ -227,6 +232,11 @@ let app = new Vue({
             },
             {
                 index: 2,
+                title: "Testing",
+                tasks: [],
+            },
+            {
+                index: 3,
                 title: "Complete",
                 tasks: [],
             },
