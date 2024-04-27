@@ -59,7 +59,7 @@ Vue.component('add-task', {
             };
             this.$emit('add-task', productReview);
             location.reload();
-        }
+        },
     },
     data() {
         return {
@@ -99,6 +99,7 @@ Vue.component('column', {
         @task-half-filled="taskHalf"
         @task-half-filled2="taskHalf2"
         @task-filled-completely="taskFilled"
+        @del-task="delTask"
         @update-task="updateTask">
     </task>
         </div>
@@ -122,7 +123,10 @@ Vue.component('column', {
         },
         updateTask(task) {
             this.$emit('save');
-        }
+        },
+        delTask(task){
+            this.$emit('del-task', task);
+        },
     },
     computed: {
         sortedTasks() {
@@ -159,6 +163,7 @@ Vue.component('task', {
   <p>Предпологаемая дата сдачи: {{ task.deadline_date }}</p>
   <p v-if="task.importance === 1">Важно</p>
   <p v-else>Обычно</p>
+  <button @click="delTask">Удалить задачу</button>
 </div>
     `,
     updated() {
@@ -170,10 +175,14 @@ Vue.component('task', {
         }
     },
     methods: {
+        delTask(task){
+            this.$emit('del-task', task);
+        },
         doneSubtask(subtask) {
             this.$emit('done-subtask', subtask)
         },
         addSubtask() {
+            this.task.date = new Date().getFullYear() + '-' + new Date().getMonth() + '-' + new Date().getDay()
             if (!this.isLastColumn && this.newSubtaskTitle.trim() !== '') {
                 this.task.subtasks.push({ title: this.newSubtaskTitle.trim(), done: false });
                 this.newSubtaskTitle = '';
@@ -193,7 +202,7 @@ Vue.component('task', {
     },
     computed: {
         isLastColumn() {
-            return this.$parent.column.index === 2;
+            return this.$parent.column.index === 3;
         },
         filled() {
             let arr = []
@@ -262,6 +271,9 @@ let app = new Vue({
             if ((this.columns[0].tasks.length > 2) || this.columns[0].disabled) return
             this.columns[0].tasks.push(task)
         },
+        delTask(task){
+            this.columns[0].tasks.splice(task,1)
+        },
         doneSubtask(subtask) {
             subtask.done = true
             this.save()
@@ -278,6 +290,9 @@ let app = new Vue({
         taskFilled(data) {
             this.move(data, this.columns[2])
             this.enabled()
+        },
+        taskTested(data){
+            this.move(data, this.columns[3])
         },
         move(data, column) {
             data.task.date = new Date().getFullYear() + '-' + new Date().getMonth() + '-' + new Date().getDay()
