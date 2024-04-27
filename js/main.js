@@ -44,9 +44,10 @@ Vue.component('add-task', {
         },
         addTask() {
             this.errors = [];
-            if (!this.task.title || this.task.subtasks.filter(subtask => subtask.title).length < 3) {
+            if (!this.task.title || this.task.subtasks.filter(subtask => subtask.title).length < 3 || !this.task.deadline_date) {
                 if (!this.task.title) this.errors.push("Title required.");
                 if (this.task.subtasks.filter(subtask => subtask.title).length < 3) this.errors.push("You must have at least 3 filled titles.");
+                if (!this.task.deadline_date) this.errors.push("Deadline required.");
                 return;
             }
             let productReview = {
@@ -72,7 +73,7 @@ Vue.component('add-task', {
                 ],
                 importance: 1,
                 deadline_date: '',
-                date: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString(),
+                date: new Date().getFullYear() + '-' + (new Date().getMonth()+1) + '-' + new Date().getDate(),
             }
         }
     },
@@ -279,7 +280,7 @@ let app = new Vue({
             this.enabled()
         },
         move(data, column) {
-            data.task.date = new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString()
+            data.task.date = new Date().getFullYear() + '-' + new Date().getMonth() + '-' + new Date().getDay()
             column.tasks.push(data.column.tasks.splice(data.column.tasks.indexOf(data.task), 1)[0])
         },
         enabled() {
