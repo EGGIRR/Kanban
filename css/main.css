@@ -1,7 +1,3 @@
-.done {
-    text-decoration: line-through;
-}
-
 table{
     border: 2px solid black;
 }
@@ -12,9 +8,6 @@ table{
     padding: 20px;
 }
 
-.subtask {
-    cursor: pointer;
-}
 
 #task2{
     display: flex;
@@ -24,9 +17,4 @@ table{
     display: flex;
     flex-direction: row;
     gap: 200px;
-}
-
-.disabled{
-    pointer-events: none;
-    background-color: darkgrey;
 }
