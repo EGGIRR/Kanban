@@ -13,7 +13,7 @@ Vue.component('add-task', {
          <input placeholder="New task" v-model="task.title">
          </label>
         <h3>Tasks</h3>
-        <div v-for="(subtask, index) in task.subtasks"><input placeholder="Task" v-model="subtask.title" :key="index">
+        <div v-for="(subtask, index) in task.subtasks"><textarea placeholder="Description" v-model="subtask.title" :key="index"></textarea>
         </div>
         <div>
     <input type="radio" id="yes" name="drone" v-model="task.importance" value="1"/>
@@ -32,9 +32,10 @@ Vue.component('add-task', {
     methods: {
         addTask() {
             this.errors = [];
-            if (!this.task.title || this.task.subtasks.filter(subtask => subtask.title).length < 3 || !this.task.deadline_date) {
+            console.log(this.task.subtasks.filter(subtask => subtask.title))
+            if (!this.task.title || this.task.subtasks.filter(subtask => subtask.title).length === 0 || !this.task.deadline_date) {
                 if (!this.task.title) this.errors.push("Title required.");
-                if (this.task.subtasks.filter(subtask => subtask.title).length < 3) this.errors.push("You must have at least 3 filled titles.");
+                if (this.task.subtasks.filter(subtask => subtask.title).length === 0) this.errors.push("You must have description.");
                 if (!this.task.deadline_date) this.errors.push("Deadline required.");
                 return;
             }
@@ -42,6 +43,7 @@ Vue.component('add-task', {
                 title: this.task.title,
                 subtasks: this.task.subtasks.filter(subtask => subtask.title),
                 date: this.task.date,
+                time: this.task.time,
                 importance: this.task.importance,
                 deadline_date: this.task.deadline_date
             };
@@ -55,12 +57,11 @@ Vue.component('add-task', {
             task: {
                 title: 'New task',
                 subtasks: [
-                    {title: "Task 1", done: false},
-                    {title: "Task 2", done: false},
-                    {title: "Task 3", done: false},
+                    {title: ""},
                 ],
                 importance: 1,
                 deadline_date: '',
+                time: new Date().getHours() + ':' + new Date().getMinutes() + ':' + new Date().getSeconds(),
                 date: new Date().getFullYear() + '-' + (new Date().getMonth()+1) + '-' + new Date().getDate(),
             }
         }
@@ -129,13 +130,15 @@ Vue.component('task', {
   <li v-for="(subtask, index) in task.subtasks" class="subtask" :key="index">
     {{ subtask.title }}
   </li>
-  <p>Дата изменения: {{ task.date }}</p>
+  <p>Дата изменения: {{ task.time }} - {{ task.date }}</p>
   <p>Предпологаемая дата сдачи: {{ task.deadline_date }}</p>
   <p v-if="task.importance === 1">Важно</p>
   <p v-else>Обычно</p>
-  <button @click="delTask">Удалить задачу</button>
+  <p v-if="!isLastColumn">
+  <button v-if="$parent.column.index === 0" @click="delTask">Удалить задачу</button>
   <button @click="move2"><--</button>
   <button @click="move">--></button>
+  </p>
 </div>
     `,
     methods: {
@@ -161,7 +164,6 @@ let app = new Vue({
     data: {
         columns: [
             {
-                disabled: false,
                 index: 0,
                 title: "New tasks",
                 tasks: [],
@@ -180,6 +182,7 @@ let app = new Vue({
                 index: 3,
                 title: "Complete",
                 tasks: [],
+                expired: false
             },
         ]
     },
@@ -202,7 +205,8 @@ let app = new Vue({
             const fromColumn = this.columns[data.column.index];
             const toColumn = this.columns[data.column.index + 1];
             if (toColumn) {
-                data.task.date = new Date().getFullYear() + '-' + (new Date().getMonth() + 1) + '-' + new Date().getDate();
+                data.task.time = new Date().getHours() + ':' + new Date().getMinutes() + ':' +new Date().getSeconds()
+                data.task.date = new Date().getFullYear() + '-' + (new Date().getMonth() + 1) + '-' + new Date().getDate()
                 toColumn.tasks.push(fromColumn.tasks.splice(fromColumn.tasks.indexOf(data.task), 1)[0]);
                 this.save();
             }
@@ -211,6 +215,7 @@ let app = new Vue({
             const fromColumn = this.columns[data.column.index];
             const toColumn = this.columns[data.column.index - 1];
             if (toColumn) {
+                data.task.time = new Date().getHours() + ':' + new Date().getMinutes() + ':' +new Date().getSeconds()
                 data.task.date = new Date().getFullYear() + '-' + (new Date().getMonth() + 1) + '-' + new Date().getDate();
                 toColumn.tasks.push(fromColumn.tasks.splice(fromColumn.tasks.indexOf(data.task), 1)[0]);
                 this.save();
