@@ -84,6 +84,8 @@ Vue.component('column', {
         :key="index"
         :task="task"
         @del-task="delTask"
+        @move-task="move"
+        @move-task2="move2"
         @update-task="updateTask">
     </task>
         </div>
@@ -93,11 +95,17 @@ Vue.component('column', {
         this.$emit('save')
     },
     methods: {
-        updateTask(task) {
-            this.$emit('save');
+        move(task) {
+            this.$emit('move-task', { task, column: this.column });
+        },
+        move2(task) {
+            this.$emit('move-task2', { task, column: this.column });
         },
         delTask(task){
             this.$emit('del-task', task);
+        },
+        updateTask(task) {
+            this.$emit('save');
         },
     },
     computed: {
@@ -126,11 +134,19 @@ Vue.component('task', {
   <p v-if="task.importance === 1">Важно</p>
   <p v-else>Обычно</p>
   <button @click="delTask">Удалить задачу</button>
+  <button @click="move2"><--</button>
+  <button @click="move">--></button>
 </div>
     `,
     methods: {
         delTask(task){
             this.$emit('del-task', task);
+        },
+        move() {
+            this.$emit('move-task', { task: this.task, column: this.$parent.column });
+        },
+        move2() {
+            this.$emit('move-task2', { task: this.task, column: this.$parent.column });
         },
     },
     computed: {
@@ -182,9 +198,23 @@ let app = new Vue({
         delTask(task){
             this.columns[0].tasks.splice(task,1)
         },
-        move(data, column) {
-            data.task.date = new Date().getFullYear() + '-' + new Date().getMonth() + '-' + new Date().getDay()
-            column.tasks.push(data.column.tasks.splice(data.column.tasks.indexOf(data.task), 1)[0])
+        move(data) {
+            const fromColumn = this.columns[data.column.index];
+            const toColumn = this.columns[data.column.index + 1];
+            if (toColumn) {
+                data.task.date = new Date().getFullYear() + '-' + (new Date().getMonth() + 1) + '-' + new Date().getDate();
+                toColumn.tasks.push(fromColumn.tasks.splice(fromColumn.tasks.indexOf(data.task), 1)[0]);
+                this.save();
+            }
+        },
+        move2(data) {
+            const fromColumn = this.columns[data.column.index];
+            const toColumn = this.columns[data.column.index - 1];
+            if (toColumn) {
+                data.task.date = new Date().getFullYear() + '-' + (new Date().getMonth() + 1) + '-' + new Date().getDate();
+                toColumn.tasks.push(fromColumn.tasks.splice(fromColumn.tasks.indexOf(data.task), 1)[0]);
+                this.save();
+            }
         },
     },
 })
