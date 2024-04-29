@@ -32,7 +32,6 @@ Vue.component('add-task', {
     methods: {
         addTask() {
             this.errors = [];
-            console.log(this.task.subtasks.filter(subtask => subtask.title))
             if (!this.task.title || this.task.subtasks.filter(subtask => subtask.title).length === 0 || !this.task.deadline_date) {
                 if (!this.task.title) this.errors.push("Title required.");
                 if (this.task.subtasks.filter(subtask => subtask.title).length === 0) this.errors.push("You must have description.");
@@ -77,6 +76,7 @@ Vue.component('column', {
         }
     },
     template: `
+        <div class="column" @dragover.prevent @drop="dropTask">
     <div class="column">
         <h2>{{column.title}}</h2>
         <div class="task">
@@ -86,15 +86,22 @@ Vue.component('column', {
         @del-task="delTask"
         @move-task="move"
         @move-task2="move2"
+        @drop-task="dropTask"
         @update-task="updateTask">
+        
     </task>
         </div>
+    </div>
     </div>
     `,
     updated() {
         this.$emit('save')
     },
     methods: {
+        dropTask(event) {
+            const taskData = JSON.parse(event.dataTransfer.getData('task'));
+            this.$emit('drop-task', { taskData, column: this.column });
+        },
         move(task) {
             this.$emit('move-task', { task, column: this.column });
         },
@@ -125,7 +132,7 @@ Vue.component('task', {
         }
     },
     template: `
-        <div :class="{task2: isFirstColumn}">
+        <div :class="{task2: isFirstColumn}" draggable="true" @dragstart="dragStart">
         <h2 v-if="!task.isEditing">{{ task.title }}</h2>
         <input v-if="task.isEditing" v-model="task.title" placeholder="Task title" />
         <p v-for="(subtask, index) in task.subtasks" class="subtask" :key="index">
@@ -146,7 +153,7 @@ Vue.component('task', {
             </div>
             <button @click="move">--></button>
             <div v-if="this.$parent.column.index === 1">
-                <p v-if="task.returnReason !== '' ">{{ task.returnReason.toString() }}</p>
+                <p v-if="task.returnReason !== '' ">{{ task.returnReason }}</p>
             </div>
             <button @click="toggleEditing">{{ task.isEditing ? 'Save' : 'Edit' }}</button>
         </div>
@@ -157,6 +164,9 @@ Vue.component('task', {
     </div>
     `,
     methods: {
+        dragStart(event) {
+            event.dataTransfer.setData('task', JSON.stringify(this.task));
+        },
         toggleEditing() {
             this.$emit('update-task', this.task);
             this.task.time = new Date().getHours() + ':' + new Date().getMinutes() + ':' +new Date().getSeconds()
@@ -238,6 +248,15 @@ let app = new Vue({
         });
     },
     methods: {
+        dropTask({ taskData, column }) {
+            const fromColumn = this.columns.find(col => col.tasks);
+            console.log(this.columns.find(col => col.tasks))
+            if (fromColumn) {
+                fromColumn.tasks.splice(fromColumn.tasks.indexOf(taskData), 1);
+            }
+            column.tasks.push(taskData);
+            this.save();
+        },
         save() {
             localStorage.setItem('columns', JSON.stringify(this.columns))
         },
