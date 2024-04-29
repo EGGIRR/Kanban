@@ -157,9 +157,9 @@ Vue.component('task', {
     `,
     methods: {
         toggleEditing() {
+            this.$emit('update-task', this.task);
             this.task.time = new Date().getHours() + ':' + new Date().getMinutes() + ':' +new Date().getSeconds()
             this.task.date = new Date().getFullYear() + '-' + (new Date().getMonth() + 1) + '-' + new Date().getDate()
-            this.$emit('update-task', this.task);
             this.task.isEditing = !this.task.isEditing;
             localStorage.setItem('task_' + this.task.title + '_isEditing', this.task.isEditing);
         },
