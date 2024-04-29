@@ -121,6 +121,7 @@ Vue.component('task', {
             title: '',
             subtasks: [],
             importance: '',
+            returnReason: []
         }
     },
     template: `
@@ -145,7 +146,7 @@ Vue.component('task', {
             </div>
             <button @click="move">--></button>
             <div v-if="this.$parent.column.index === 1">
-                <p v-if="task.returnReason !== '' ">{{ task.returnReason }}</p>
+                <p v-if="task.returnReason !== '' ">{{ task.returnReason.toString() }}</p>
             </div>
             <button @click="toggleEditing">{{ task.isEditing ? 'Save' : 'Edit' }}</button>
         </div>
@@ -166,7 +167,10 @@ Vue.component('task', {
         returnToActive() {
             const reason = prompt("Please enter the reason for returning the task:");
             if (reason) {
-                this.task.returnReason = reason;
+                if (!this.task.returnReason) {
+                    this.$set(this.task, 'returnReason', []); // Инициализация returnReason как пустого массива
+                }
+                this.task.returnReason.push(reason); // Добавление причины в массив returnReason
                 this.$emit('move-task2', { task: this.task, column: this.$parent.column });
             }
         },
