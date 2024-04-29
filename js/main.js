@@ -48,7 +48,6 @@ Vue.component('add-task', {
                 deadline_date: this.task.deadline_date
             };
             this.$emit('add-task', productReview);
-            location.reload();
         },
     },
     data() {
@@ -74,7 +73,7 @@ Vue.component('column', {
             title: '',
             tasks: [],
             date: '',
-            deadline_date: ''
+            deadline_date: '',
         }
     },
     template: `
@@ -121,39 +120,49 @@ Vue.component('task', {
         task: {
             title: '',
             subtasks: [],
-            importance: ''
+            importance: '',
         }
     },
     template: `
-    <div :class="{task2: isFirstColumn}">
-  <h2>{{ task.title }}</h2>
-  <p v-for="(subtask, index) in task.subtasks" class="subtask" :key="index">
-    {{ subtask.title }}
-  </p>
-  <p>Дата изменения: {{ task.time }} - {{ task.date }}</p>
-  <p>Предпологаемая дата сдачи: {{ task.deadline_date }}</p>
-  <p v-if="task.importance === 1">important</p>
-  <p v-else>Common</p>
-  <div v-if="!isLastColumn">
-  <button v-if="isFirstColumn" @click="delTask">Delete task</button>
-  <div v-if="this.$parent.column.index !== 2">
-  <button @click="move2"><--</button>
-  </div>
-  <div v-if="this.$parent.column.index === 2">
-  <button @click="returnToActive"><--</button>
-</div>
-  <button @click="move">--></button>
-  <div v-if="this.$parent.column.index === 1">
-  <p v-if="task.returnReason !== '' ">{{ task.returnReason }}</p>
-</div>
-</div>
-  <div v-if="isLastColumn">
-  <p v-if="isTaskOverdue">Expired</p>
-  <p v-else>Done in time</p>
-  </div>
-</div>
+        <div :class="{task2: isFirstColumn}">
+        <h2 v-if="!task.isEditing">{{ task.title }}</h2>
+        <input v-if="task.isEditing" v-model="task.title" placeholder="Task title" />
+        <p v-for="(subtask, index) in task.subtasks" class="subtask" :key="index">
+            <span v-if="!task.isEditing">{{ subtask.title }}</span>
+            <textarea v-if="task.isEditing" v-model="subtask.title" placeholder="Subtask description"></textarea>
+        </p>
+        <p>Дата изменения: {{ task.time }} - {{ task.date }}</p>
+        <p>Предпологаемая дата сдачи: {{ task.deadline_date }}</p>
+        <p v-if="task.importance === 1">important</p>
+        <p v-else>Common</p>
+        <div v-if="!isLastColumn">
+            <button v-if="isFirstColumn" @click="delTask">Delete task</button>
+            <div v-if="this.$parent.column.index !== 2">
+                <button @click="move2"><--</button>
+            </div>
+            <div v-if="this.$parent.column.index === 2">
+                <button @click="returnToActive"><--</button>
+            </div>
+            <button @click="move">--></button>
+            <div v-if="this.$parent.column.index === 1">
+                <p v-if="task.returnReason !== '' ">{{ task.returnReason }}</p>
+            </div>
+            <button @click="toggleEditing">{{ task.isEditing ? 'Save' : 'Edit' }}</button>
+        </div>
+        <div v-if="isLastColumn">
+            <p v-if="isTaskOverdue">Expired</p>
+            <p v-else>Done in time</p>
+        </div>
+    </div>
     `,
     methods: {
+        toggleEditing() {
+            this.task.time = new Date().getHours() + ':' + new Date().getMinutes() + ':' +new Date().getSeconds()
+            this.task.date = new Date().getFullYear() + '-' + (new Date().getMonth() + 1) + '-' + new Date().getDate()
+            this.$emit('update-task', this.task);
+            this.task.isEditing = !this.task.isEditing;
+            localStorage.setItem('task_' + this.task.title + '_isEditing', this.task.isEditing);
+        },
         returnToActive() {
             const reason = prompt("Please enter the reason for returning the task:");
             if (reason) {
@@ -214,6 +223,15 @@ let app = new Vue({
     mounted() {
         if (!localStorage.getItem('columns')) return
         this.columns = JSON.parse(localStorage.getItem('columns'));
+
+        this.columns.forEach(column => {
+            column.tasks.forEach(task => {
+                const isEditing = localStorage.getItem('task_' + task.title + '_isEditing');
+                if (isEditing !== null) {
+                    task.isEditing = JSON.parse(isEditing);
+                }
+            });
+        });
     },
     methods: {
         save() {
