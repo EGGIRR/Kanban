@@ -76,7 +76,7 @@ Vue.component('column', {
         }
     },
     template: `
-        <div class="column" @dragover.prevent @drop="dropTask">
+        <div class="column">
     <div class="column">
         <h2>{{column.title}}</h2>
         <div class="task">
@@ -86,7 +86,6 @@ Vue.component('column', {
         @del-task="delTask"
         @move-task="move"
         @move-task2="move2"
-        @drop-task="dropTask"
         @update-task="updateTask">
         
     </task>
@@ -98,10 +97,6 @@ Vue.component('column', {
         this.$emit('save')
     },
     methods: {
-        dropTask(event) {
-            const taskData = JSON.parse(event.dataTransfer.getData('task'));
-            this.$emit('drop-task', { taskData, column: this.column });
-        },
         move(task) {
             this.$emit('move-task', { task, column: this.column });
         },
@@ -164,14 +159,12 @@ Vue.component('task', {
     </div>
     `,
     methods: {
-        dragStart(event) {
-            event.dataTransfer.setData('task', JSON.stringify(this.task));
-        },
         toggleEditing() {
-            this.$emit('update-task', this.task);
-            this.task.time = new Date().getHours() + ':' + new Date().getMinutes() + ':' +new Date().getSeconds()
-            this.task.date = new Date().getFullYear() + '-' + (new Date().getMonth() + 1) + '-' + new Date().getDate()
             this.task.isEditing = !this.task.isEditing;
+            this.task.time = new Date().getHours() + ':' + new Date().getMinutes() + ':' + new Date().getSeconds();
+            this.task.date = new Date().getFullYear() + '-' + (new Date().getMonth() + 1) + '-' + new Date().getDate();
+            this.$emit('update-task', this.task);
+            location.reload()
             localStorage.setItem('task_' + this.task.title + '_isEditing', this.task.isEditing);
         },
         returnToActive() {
@@ -248,15 +241,6 @@ let app = new Vue({
         });
     },
     methods: {
-        dropTask({ taskData, column }) {
-            const fromColumn = this.columns.find(col => col.tasks);
-            console.log(this.columns.find(col => col.tasks))
-            if (fromColumn) {
-                fromColumn.tasks.splice(fromColumn.tasks.indexOf(taskData), 1);
-            }
-            column.tasks.push(taskData);
-            this.save();
-        },
         save() {
             localStorage.setItem('columns', JSON.stringify(this.columns))
         },
