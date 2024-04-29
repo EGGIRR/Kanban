@@ -132,20 +132,35 @@ Vue.component('task', {
   </p>
   <p>Дата изменения: {{ task.time }} - {{ task.date }}</p>
   <p>Предпологаемая дата сдачи: {{ task.deadline_date }}</p>
-  <p v-if="task.importance === 1">Важно</p>
-  <p v-else>Обычно</p>
-  <p v-if="!isLastColumn">
-  <button v-if="isFirstColumn" @click="delTask">Удалить задачу</button>
+  <p v-if="task.importance === 1">important</p>
+  <p v-else>Common</p>
+  <div v-if="!isLastColumn">
+  <button v-if="isFirstColumn" @click="delTask">Delete task</button>
+  <div v-if="this.$parent.column.index !== 2">
   <button @click="move2"><--</button>
+  </div>
+  <div v-if="this.$parent.column.index === 2">
+  <button @click="returnToActive"><--</button>
+</div>
   <button @click="move">--></button>
-  </p>
+  <div v-if="this.$parent.column.index === 1">
+  <p v-if="task.returnReason !== '' ">{{ task.returnReason }}</p>
+</div>
+</div>
   <div v-if="isLastColumn">
-  <p v-if="isTaskOverdue">Просрочено</p>
-  <p v-else>Выполненна в срок</p>
+  <p v-if="isTaskOverdue">Expired</p>
+  <p v-else>Done in time</p>
   </div>
 </div>
     `,
     methods: {
+        returnToActive() {
+            const reason = prompt("Please enter the reason for returning the task:");
+            if (reason) {
+                this.task.returnReason = reason;
+                this.$emit('move-task2', { task: this.task, column: this.$parent.column });
+            }
+        },
         delTask(task){
             this.$emit('del-task', task);
         },
