@@ -253,24 +253,33 @@ let app = new Vue({
         dropTask({ taskData, column }) {
             const currentColumn = this.columns.find(col => col === column);
             const currentIndex = this.columns.findIndex(col => col === column);
+                if (currentIndex > 0) {
+                    const previousColumn = this.columns[currentIndex - 1];
+                    let taskIndex = -1;
 
-            if (currentIndex > 0) {
-                const previousColumn = this.columns[currentIndex - 1];
-                let taskIndex = -1;
+                    for (let i = 0; i < previousColumn.tasks.length; i++) {
+                        if (previousColumn.tasks[i].title === taskData.title) {
+                            taskIndex = i;
+                            break;
+                        }
+                    }
 
-                for (let i = 0; i < previousColumn.tasks.length; i++) {
-                    if (previousColumn.tasks[i].title === taskData.title) {
-                        taskIndex = i;
-                        break;
+                    if (taskIndex !== -1) {
+                        previousColumn.tasks.splice(taskIndex, 1);
+                        currentColumn.tasks.push(taskData);
+                        this.save();
+                    } else {
+                            const nextColumn = this.columns[currentIndex + 1];
+                            taskIndex = nextColumn.tasks.findIndex(task => task.title === taskData.title);
+                            if (currentIndex !== 2) {
+                                if (taskIndex !== -1) {
+                                    nextColumn.tasks.splice(taskIndex, 1);
+                                    currentColumn.tasks.push(taskData);
+                                    this.save();
+                                }
+                            }
                     }
                 }
-
-                if (taskIndex !== -1) {
-                    previousColumn.tasks.splice(taskIndex, 1);
-                    currentColumn.tasks.push(taskData);
-                    this.save();
-                }
-            }
         },
         save() {
             localStorage.setItem('columns', JSON.stringify(this.columns))
