@@ -47,6 +47,7 @@ Vue.component('add-task', {
                 deadline_date: this.task.deadline_date
             };
             this.$emit('add-task', productReview);
+            location.reload()
         },
     },
     data() {
@@ -76,7 +77,7 @@ Vue.component('column', {
         }
     },
     template: `
-        <div class="column">
+        <div class="column" @dragover.prevent @drop="dropTask">
     <div class="column">
         <h2>{{column.title}}</h2>
         <div class="task">
@@ -86,6 +87,7 @@ Vue.component('column', {
         @del-task="delTask"
         @move-task="move"
         @move-task2="move2"
+        @drop-task="dropTask"
         @update-task="updateTask">
         
     </task>
@@ -97,6 +99,10 @@ Vue.component('column', {
         this.$emit('save')
     },
     methods: {
+        dropTask(event) {
+            const taskData = JSON.parse(event.dataTransfer.getData('task'));
+            this.$emit('drop-task', { taskData, column: this.column });
+        },
         move(task) {
             this.$emit('move-task', { task, column: this.column });
         },
@@ -159,6 +165,9 @@ Vue.component('task', {
     </div>
     `,
     methods: {
+        dragStart(event) {
+            event.dataTransfer.setData('task', JSON.stringify(this.task));
+        },
         toggleEditing() {
             this.task.isEditing = !this.task.isEditing;
             this.task.time = new Date().getHours() + ':' + new Date().getMinutes() + ':' + new Date().getSeconds();
@@ -241,6 +250,28 @@ let app = new Vue({
         });
     },
     methods: {
+        dropTask({ taskData, column }) {
+            const currentColumn = this.columns.find(col => col === column);
+            const currentIndex = this.columns.findIndex(col => col === column);
+
+            if (currentIndex > 0) {
+                const previousColumn = this.columns[currentIndex - 1];
+                let taskIndex = -1;
+
+                for (let i = 0; i < previousColumn.tasks.length; i++) {
+                    if (previousColumn.tasks[i].title === taskData.title) {
+                        taskIndex = i;
+                        break;
+                    }
+                }
+
+                if (taskIndex !== -1) {
+                    previousColumn.tasks.splice(taskIndex, 1);
+                    currentColumn.tasks.push(taskData);
+                    this.save();
+                }
+            }
+        },
         save() {
             localStorage.setItem('columns', JSON.stringify(this.columns))
         },
