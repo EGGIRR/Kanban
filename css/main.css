@@ -10,11 +10,21 @@ table{
 
 
 #task2{
+    position: absolute;
+    top: 400px;
     display: flex;
     flex-direction: row;
 }
+
 #app{
     display: flex;
     flex-direction: row;
     gap: 200px;
+}
+
+.task2{
+
+}
+.add{
+   background-color: lightblue;
 }

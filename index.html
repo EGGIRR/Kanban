@@ -12,7 +12,9 @@
 </head>
 <body>
 <div id="app">
+    <div class="add">
     <add-task @add-task="addTask"></add-task>
+    </div>
     <div id="task2">
         <column v-for="(column, index) in columns" :key="index"
                 :column="column"

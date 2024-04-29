@@ -9,7 +9,7 @@ Vue.component('add-task', {
     </p>
         <h2>Create task</h2>
         <div>
-        <label>Task title:
+        <label>Task title: <br>
          <input placeholder="New task" v-model="task.title">
          </label>
         <h3>Tasks</h3>
@@ -112,7 +112,7 @@ Vue.component('column', {
     computed: {
         sortedTasks() {
             return this.column.tasks.sort((a, b) => b.importance - a.importance);
-        }
+        },
     }
 })
 
@@ -125,20 +125,24 @@ Vue.component('task', {
         }
     },
     template: `
-    <div>
+    <div :class="{task2: isFirstColumn}">
   <h2>{{ task.title }}</h2>
-  <li v-for="(subtask, index) in task.subtasks" class="subtask" :key="index">
+  <p v-for="(subtask, index) in task.subtasks" class="subtask" :key="index">
     {{ subtask.title }}
-  </li>
+  </p>
   <p>Дата изменения: {{ task.time }} - {{ task.date }}</p>
   <p>Предпологаемая дата сдачи: {{ task.deadline_date }}</p>
   <p v-if="task.importance === 1">Важно</p>
   <p v-else>Обычно</p>
   <p v-if="!isLastColumn">
-  <button v-if="$parent.column.index === 0" @click="delTask">Удалить задачу</button>
+  <button v-if="isFirstColumn" @click="delTask">Удалить задачу</button>
   <button @click="move2"><--</button>
   <button @click="move">--></button>
   </p>
+  <div v-if="isLastColumn">
+  <p v-if="isTaskOverdue">Просрочено</p>
+  <p v-else>Выполненна в срок</p>
+  </div>
 </div>
     `,
     methods: {
@@ -156,6 +160,12 @@ Vue.component('task', {
         isLastColumn() {
             return this.$parent.column.index === 3;
         },
+        isFirstColumn() {
+            return this.$parent.column.index === 0;
+        },
+        isTaskOverdue() {
+            return new Date(this.task.date) > new Date(this.task.deadline_date);
+        },
     }
 })
 
@@ -165,7 +175,7 @@ let app = new Vue({
         columns: [
             {
                 index: 0,
-                title: "New tasks",
+                title: "Planned tasks",
                 tasks: [],
             },
             {
@@ -202,21 +212,24 @@ let app = new Vue({
             this.columns[0].tasks.splice(task,1)
         },
         move(data) {
+            if (data.column.index === 2 && new Date(data.task.task.date) > new Date(data.task.task.deadline_date)) {
+                data.task.column.expired = true;
+            }
+            data.task.task.time = new Date().getHours() + ':' + new Date().getMinutes() + ':' +new Date().getSeconds()
+            data.task.task.date = new Date().getFullYear() + '-' + (new Date().getMonth() + 1) + '-' + new Date().getDate()
             const fromColumn = this.columns[data.column.index];
             const toColumn = this.columns[data.column.index + 1];
             if (toColumn) {
-                data.task.time = new Date().getHours() + ':' + new Date().getMinutes() + ':' +new Date().getSeconds()
-                data.task.date = new Date().getFullYear() + '-' + (new Date().getMonth() + 1) + '-' + new Date().getDate()
                 toColumn.tasks.push(fromColumn.tasks.splice(fromColumn.tasks.indexOf(data.task), 1)[0]);
                 this.save();
             }
         },
         move2(data) {
+            data.task.task.time = new Date().getHours() + ':' + new Date().getMinutes() + ':' +new Date().getSeconds()
+            data.task.task.date = new Date().getFullYear() + '-' + (new Date().getMonth() + 1) + '-' + new Date().getDate()
             const fromColumn = this.columns[data.column.index];
             const toColumn = this.columns[data.column.index - 1];
             if (toColumn) {
-                data.task.time = new Date().getHours() + ':' + new Date().getMinutes() + ':' +new Date().getSeconds()
-                data.task.date = new Date().getFullYear() + '-' + (new Date().getMonth() + 1) + '-' + new Date().getDate();
                 toColumn.tasks.push(fromColumn.tasks.splice(fromColumn.tasks.indexOf(data.task), 1)[0]);
                 this.save();
             }
