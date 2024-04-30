@@ -250,6 +250,16 @@ let app = new Vue({
         });
     },
     methods: {
+        returnToActive(task,column) {
+            const reason = prompt("Please enter the reason for returning the task:");
+            if (reason) {
+                if (!task.returnReason) {
+                    this.$set(task, 'returnReason', []);
+                }
+                task.returnReason.push(reason);
+                this.$emit('move-task2', { task: task, column: column });
+            }
+        },
         dropTask({ taskData, column }) {
             const currentColumn = this.columns.find(col => col === column);
             const currentIndex = this.columns.findIndex(col => col === column);
@@ -275,6 +285,7 @@ let app = new Vue({
                                 if (taskIndex !== -1) {
                                     nextColumn.tasks.splice(taskIndex, 1);
                                     currentColumn.tasks.push(taskData);
+                                    this.returnToActive(taskData);
                                     this.save();
                                 }
                             }
